@@ -97,16 +97,3 @@ class Population:
 			self.neuron_ids.update(n.neuron_ids)
 
 
-
-	def save(self,nets):
-	    save_file = open('H:\\Documents\\top_player-' + str(pid) + '-.pickle', mode='wb')
-	    pickle.dump(player.brain, save_file)
-	    print("player saved to ", save_file)
-	    save_file.close()
-
-def load(name, latest):
-    path = 'H:\\Documents\\'
-    if not (this_id):
-        this_id = get_top_id()
-    pickle_in = open("H:\\Documents\\top_player-" + str(this_id) + "-.pickle", "rb")
-    return(pickle.load(pickle_in))
