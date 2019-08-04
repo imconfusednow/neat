@@ -15,7 +15,7 @@ class Species:
 		self.template_genome = genome
 		self.gene_coef = 1.0
 		self.weight_coef = 0.4
-		self.divergence_theshold = 3.0
+		self.divergence_theshold = 2.0
 		self.fitness = 0
 		self.last_fitness = 0
 		self.stale = False
@@ -51,6 +51,12 @@ class Species:
 
 		return 0
 
+
+	def birth_extra(self, to_add, starting_id):
+		for i in range(to_add):
+			mem = numpy.random.choice(self.members)
+			self.members.append(Network(mem.ins, mem.outs, mem.recurrent, starting_id + i, copy.deepcopy(mem.dna), False, True))
+
 	def cull(self, pop):
 		if self.age == 0: return
 		self.members = pop[0: math.floor(len(self.members) * 0.5)]
@@ -78,7 +84,7 @@ class Species:
 	def matches_species(self, potential):
 		if self.stale:
 			return
-		if self.age != 0 and self.age % 20 == 0:
+		if self.age != 0 and self.age % 40 == 0:
 			if self.fitness < self.last_fitness:
 				self.stale = True
 				print("species ", self.id, " has gone stale. Age: ", self.age, " last_fitness ", self.last_fitness, " fitness ", self.fitness)
@@ -113,7 +119,7 @@ class Species:
 
 		weight_difference /= matches
 
-		genome_normaliser = len(genome["connections"]) - 20.0
+		genome_normaliser = len(genome["connections"]) - 60.0
 		if genome_normaliser < 1:
 			genome_normaliser = 1
 

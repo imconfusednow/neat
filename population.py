@@ -60,7 +60,15 @@ class Population:
 
 		self.fitness_sum = fitness_sum
 
-		for s in self.species:
+		pop_track = 0
+
+		fittest = [0,0]
+
+		for i in range(len(self.species)):
+			s = self.species[i]
+			if s.fitness > fittest[0]:
+				fittest[0] = s.fitness
+				fittest[1] = i
 			to_add = math.floor(s.fitness / fitness_sum * self.size) + pass_on_extra
 			if s.id == 0: self.this_to_add = to_add
 			# print("ta", s.fitness, fitness_sum, self.size)
@@ -69,6 +77,12 @@ class Population:
 				pass_on_extra = s.birth(to_add, True, starting_id)
 			else:
 				pass_on_extra = s.birth(to_add, False, starting_id)
+			starting_id += to_add
+			pop_track += to_add
+
+		if pop_track < self.size:
+			to_add = self.size - pop_track
+			self.species[fittest[1]].birth_extra(to_add , starting_id)
 			starting_id += to_add
 
 	def speciate(self, pop):
