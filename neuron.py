@@ -1,7 +1,6 @@
 # takes layer, id, output connection
 
 import numpy
-import math
 
 
 class Neuron:
@@ -13,6 +12,7 @@ class Neuron:
         self.input_value = 0
         self.output_value = 0
         self.connections = []
+        self.recurrents = []
         self.signals_received = 0
         self.incoming_signals = in_sigs
 
@@ -29,9 +29,13 @@ class Neuron:
         for i in self.connections:
             i.transmit(self.output_value, do_print)
 
+    def fire_recurrents(self):
+        for i in self.recurrents:
+            i.transmit(self.output_value, False)
+
     def set_value(self, value, do_print):
         if self.layer == 0:
-            self.input_value = value
+            self.input_value += value
             self.output_value = value
         else:
             self.input_value += value
@@ -39,12 +43,13 @@ class Neuron:
         self.signals_received += 1
         if self.signals_received == self.incoming_signals:
             self.fire(do_print)
+            self.reset()
 
     def activation(self, value):
         return numpy.tanh(value)
 
-    	#return 1 / (1 + math.exp(-value))
-    	#return max(0,value)
+        # return 1 / (1 + math.exp(-value))
+        # return max(0,value)
 
     def add_connection(self, connection):
         self.connections.append(connection)
