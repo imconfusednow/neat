@@ -94,10 +94,9 @@ class Network:
             node1.recurrents.append(self.recurrents[-1])
 
     def feed_forward(self, inputs):
-        do_print = False
         for i in range(len(self.neurons)):
             if self.neurons[i].layer == 0:
-                self.neurons[i].set_value(inputs[i], do_print)
+                self.neurons[i].set_value(inputs[i])
 
         for i in range(len(self.neurons)):
             self.neurons[i].fire_recurrents()
@@ -105,10 +104,6 @@ class Network:
 
         for i in range(self.max_node - self.outs, self.max_node):
             outputs.append(self.neurons[i].output_value)
-
-        if do_print:
-            print("\n", outputs)
-            print("\n", self.dna)
 
         return outputs
 
@@ -129,20 +124,20 @@ class Network:
 
     def mutate_dna(self):
         rand = numpy.random.rand()
-
-        if rand < 0.001:
+        if rand < 0.01:
             self.mutate_nodes()
-        elif rand < 0.0012:
+        elif rand < 0.002:
             self.activate_or_inactivate()
 
         rand2 = numpy.random.rand()
 
-        if rand2 < 0.04:
+        if rand2 < 0.001:
             self.mutate_connections()
 
         rand3 = numpy.random.rand()
         if rand3 < 0.8:
             self.mutate_weights()
+
 
     def mutate_weights(self):
         keyword = numpy.random.choice(("connections", "recurrents"))
@@ -200,16 +195,17 @@ class Network:
 
         c = numpy.random.randint(length)
 
-        self.dna[keyword][c][3] = not self.dna[keyword][c][3]
+        #self.dna[keyword][c][3] = not self.dna[keyword][c][3]
+        del self.dna[keyword][c]
 
     def mutate_connections(self):
         l1 = numpy.random.randint(len(self.dna["neurons"]))
 
-        n1 = numpy.random.choice(self.dna["neurons"][l1])
+        n1 = int(numpy.random.choice(self.dna["neurons"][l1]))
 
         l2 = numpy.random.randint(len(self.dna["neurons"]))
 
-        n2 = numpy.random.choice(self.dna["neurons"][l2])
+        n2 = int(numpy.random.choice(self.dna["neurons"][l2]))
 
         c_or_r = "connections" if l2 > l1 else "recurrents"
 

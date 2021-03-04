@@ -9,23 +9,24 @@ import numpy
 
 class Species:
 
-    def __init__(self, id, genome):
+    def __init__(self, id, genome, colour):
         self.id = id
         self.members = []
         self.template_genome = genome
         self.gene_coef = 1.0
         self.weight_coef = 0.4
-        self.divergence_theshold = 1
         self.fitness = 0
         self.last_fitness = 0
         self.stale = False
         self.age = 0
         self.add_up = 0
         self.count = 0
-        self.colour = (numpy.random.randint(255),numpy.random.randint(255),numpy.random.randint(255))
+        self.colour = colour
+        self.chosen = []
 
     def birth(self, to_add, champ, starting_id):
         new_pop = []
+        self.chosen = []
         self.add_up = 0
         self.count = 0
         self.sort_species(self.members)
@@ -34,7 +35,7 @@ class Species:
             return to_add
         if champ:
             new_pop.append(Network(self.members[0].ins, self.members[0].outs, self.members[0].recurrent, self.members[0].id,
-                                   copy.deepcopy(self.members[0].dna), False, False, self.id, self.members[0].colour))
+                                   copy.deepcopy(self.members[0].dna), False, False, self.id, self.colour))
             to_add -= 1
 
         to_cross_over = math.ceil(to_add * 0.2)
@@ -44,19 +45,16 @@ class Species:
             mem1 = self.choose_net()
             mem2 = self.choose_net()
             new_pop.append(Network(mem1.ins, mem1.outs, mem1.recurrent, starting_id + i,
-                                   self.crossover(copy.deepcopy(mem1), copy.deepcopy(mem2)), False, True, self.id, mem1.colour))
+                                   self.crossover(copy.deepcopy(mem1), copy.deepcopy(mem2)), False, True, self.id, self.colour))
 
         for i in range(to_add):
             mem = self.choose_net()
             new_pop.append(Network(mem.ins, mem.outs, mem.recurrent, starting_id +
-                                   to_cross_over + i, copy.deepcopy(mem.dna), False, True, self.id, mem1.colour))
+                                   to_cross_over + i, copy.deepcopy(mem.dna), False, True, self.id, self.colour))
 
         self.members = new_pop
 
         self.age += 1
-
-        if self.count != 0:
-            print(self.add_up / self.count)
 
         return 0
 
@@ -64,7 +62,7 @@ class Species:
         for i in range(to_add):
             mem = numpy.random.choice(self.members)
             self.members.append(Network(mem.ins, mem.outs, mem.recurrent,
-                                        starting_id + i, copy.deepcopy(mem.dna), False, True, self.id, mem.colour))
+                                        starting_id + i, copy.deepcopy(mem.dna), False, True, self.id, self.colour))
 
     def cull(self, pop):
         if self.age == 0:
@@ -81,6 +79,7 @@ class Species:
             if tot >= rand:
                 self.add_up += m
                 self.count += 1
+                self.chosen.append(i.id)
                 return i
 
         tot = 0
@@ -96,21 +95,18 @@ class Species:
 
     def matches_species(self, potential, check_stale):
         if self.stale:
-            return False
+            return 9999
         if self.age != 0 and self.age % 40 == 0:
             if check_stale and self.fitness < self.last_fitness:
                 self.stale = True
                 print("species ", self.id, " has gone stale. Age: ", self.age,
                       " last_fitness ", self.last_fitness, " fitness ", self.fitness)
-                return False
+                return 9999
             else:
                 self.stale = False
                 self.last_fitness = self.fitness
-        if self.compare_genome(potential):
-            self.members.append(potential)
-            return True
-        else:
-            return False
+        return self.compare_genome(potential)
+
 
     def compare_genome(self, potential):
         genome = potential.dna
@@ -119,8 +115,15 @@ class Species:
         weight_difference = 0
         matches = 0
 
-        for c in genome["connections"]:
-            for c2 in self.template_genome["connections"]:
+        if len(genome["connections"]) > len(self.template_genome["connections"]):
+            gen1 = genome["connections"]
+            gen2 = self.template_genome["connections"]
+        else:
+            gen1 = self.template_genome["connections"]
+            gen2 = genome["connections"]
+
+        for c in gen1:
+            for c2 in gen2:
                 matched = False
                 if c[0] == c2[0] and c[1] == c2[1]:
                     weight_difference += abs(c[2] - c2[2])
@@ -142,7 +145,7 @@ class Species:
         divergence = ((self.gene_coef * different_genes) /
                       genome_normaliser) + (self.weight_coef * weight_difference)
 
-        return divergence < self.divergence_theshold
+        return divergence
 
     def sort_species(self, curr_pop):
         self.members = sorted(
@@ -150,8 +153,9 @@ class Species:
 
     def set_fitness(self):
         self.fitness = 0
+        div = len(self.members)
         for m in self.members:
-            m.adj_fitness = m.fitness / len(self.members)
+            m.adj_fitness = m.fitness / div
             self.fitness += m.adj_fitness
 
         return self.fitness

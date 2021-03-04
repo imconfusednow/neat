@@ -13,14 +13,10 @@ class Connection:
         if not recursive:
             self.to_node.incoming_signals += 1
 
-    def transmit(self, value, do_print):
+    def transmit(self, value):
         if not self.enabled:
             return
         if self.recursive:
             self.to_node.input_value += value
         else:
-            self.to_node.set_value(value * self.weight, do_print)
-        if do_print:
-            print("to node " + str(self.to_node.id))
-            print(value, self.weight, value * self.weight)
-            print(self.to_node.input_value)
+            self.to_node.set_value(value * self.weight)
